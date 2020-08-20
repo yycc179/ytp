@@ -12,10 +12,11 @@ import json
 import socket
 import SocketServer
 import time
+import commands
 
 cur_path = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
 
-sys.path.insert(0, cur_path + '/../youtube-dl')
+sys.path.insert(0, cur_path + '/youtube-dl')
 
 # print (sys.path)
 
@@ -28,12 +29,11 @@ from youtube_dl.utils import write_json_file
 
 compiled_regex_type = type(re.compile(''))
 
-VERSION='1.0'
-
 # real signature unknown; restored from __doc__
 
 _player_cache={}
 _player_error_cache={}
+START_AT = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
 
 def isinstance(p_object, class_or_type_or_tuple):
     """
@@ -194,7 +194,9 @@ class MyHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         client_data = self.request.recv(1024)
         if client_data == 'ver':
-            return self.request.sendall('service version: ' + VERSION)
+            cmd = 'git --git-dir=%s/.git log --pretty=format:"%%h | %%ci, %%ar" -1' % cur_path 
+            res = 'Ver: %s<br>Uptime: %s' % (commands.getoutput(cmd), START_AT)
+            return self.request.sendall(res)  
 
         b = client_data.split(' ')
 
@@ -208,5 +210,3 @@ if __name__ == '__main__':
     server = MyTCPServer((HOST, PORT), MyHandler)
     print 'python server listening %s' %  PORT
     server.serve_forever()
-
-
