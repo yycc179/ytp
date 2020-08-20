@@ -193,9 +193,15 @@ class MyHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         client_data = self.request.recv(1024)
-        if client_data == 'ver':
-            cmd = 'git --git-dir=%s/.git log --pretty=format:"%%h | %%ci, %%ar" -1' % cur_path 
-            res = 'Ver: %s<br>Uptime: %s' % (commands.getoutput(cmd), START_AT)
+        if client_data == 'ver':                                                                       
+            res='Ver: '                                                                                
+            GIT_PATH=os.getenv('YTS_REPO_PATH')                                                        
+            if GIT_PATH is not None:                                                                   
+                cmd = 'git --git-dir=%s/.git log --pretty=format:"%%h | %%ci, %%ar" -1' % GIT_PATH     
+                res +=  commands.getoutput(cmd) 
+                                                                  
+            res += '\n<br>\n'                                                                     
+            res += 'Uptime: %s' % START_AT                                                        
             return self.request.sendall(res)  
 
         b = client_data.split(' ')
