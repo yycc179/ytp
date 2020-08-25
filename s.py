@@ -173,13 +173,14 @@ def _decrypt_signature(s, js_url):
                 cache_res = func(test_string)
                 cache_spec = [ord(c) for c in cache_res]
                 cache_store(func_id, cache_spec)
+                _player_error_cache.clear()
 
             _player_cache[func_id] = cache_spec
         else:
             cache_spec = _player_cache[func_id]
         return ''.join(s[i] for i in cache_spec)
     except Exception, e:
-        print '%s\n%s\n%s\n%s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), e, s, js_url)
+        print '%s\nerr=%s\ns=%s\njs=%s\n' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), e, s, js_url)
         _player_error_cache[func_id] = 1
         return None
 
@@ -206,6 +207,9 @@ class MyHandler(SocketServer.BaseRequestHandler):
 
         b = client_data.split(' ')
 
+        if len(b[0]) < 50:
+            print '%s\nerr=%s\ns=%s\njs=%s\n' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), 'parameter error', b[0], b[1])
+            return self.request.sendall('parameter error')
         sr = _decrypt_signature(b[0], b[1])
         if sr is None:
             sr = 'signature function error!' 
