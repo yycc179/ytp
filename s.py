@@ -33,7 +33,7 @@ compiled_regex_type = type(re.compile(''))
 
 _player_cache={}
 _player_error_cache={}
-START_AT = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
+START_AT = time.strftime("%Y-%m-%d %H:%M:%S %Z", time.localtime(time.time()))
 
 def isinstance(p_object, class_or_type_or_tuple):
     """
@@ -143,18 +143,18 @@ def _decrypt_signature(s, js_url):
     if js_url is None:
         return None
 
-    # js_url = js_url.replace('http:', 'https://www.youtube.com')
-
     id_m = re.match(
         # r'.*?[-.](?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
-        r'.*player/(?P<id>\w+)/.*?[-.](?P<idx>[a-zA-Z0-9_-]+)/(?P<l>\w+)/base.(?P<ext>[a-z]+)$',
+        # r'.*player/(?P<id>\w+)/.*?[-.](?P<idx>[a-zA-Z0-9_-]+)/(?P<l>\w+)/base.(?P<ext>[a-z]+)$',
+        r'.*player/(?P<id>[a-zA-Z0-9_-]{8,})/player_ias\.vflset(?:/[a-zA-Z]{2,3}_[a-zA-Z]{2,3})?/base\.(?P<ext>[a-z]+)$',
         js_url)
     if not id_m:
         # raise ExtractorError('Cannot identify player %r' % js_url)
+        print '%s\nerr=%s\njs=%s\n' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())), 're err', js_url)
         return None
 
-    # player_id = id_m.group('id')
-    player_id = '%s-%s' % (id_m.group('id'), id_m.group('l'))
+    player_id = id_m.group('id')
+    # player_id = '%s-%s' % (id_m.group('id'), id_m.group('l'))
     # Read from filesystem cache
     func_id = '%s_%s_%s' % (
         id_m.group('ext'), player_id, _signature_cache_id(s))
@@ -195,7 +195,7 @@ class MyHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         client_data = self.request.recv(1024)
         if client_data == 'ver':                                                                       
-            res='Ver: '                                                                                
+            res='Version: '                                                                                
             GIT_PATH=os.getenv('YTS_REPO_PATH')                                                        
             if GIT_PATH is not None:                                                                   
                 cmd = 'git --git-dir=%s/.git log --pretty=format:"%%h | %%ci, %%ar" -1' % GIT_PATH     
